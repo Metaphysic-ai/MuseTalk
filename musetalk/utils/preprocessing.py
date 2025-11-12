@@ -1,5 +1,5 @@
 import sys
-from face_detection import FaceAlignment,LandmarksType
+from musetalk.utils.face_detection import FaceAlignment,LandmarksType
 from os import listdir, path
 import subprocess
 import numpy as np
@@ -11,16 +11,19 @@ from mmpose.apis import inference_topdown, init_model
 from mmpose.structures import merge_data_samples
 import torch
 from tqdm import tqdm
+from pathlib import Path
 
 # initialize the mmpose model
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-config_file = './musetalk/utils/dwpose/rtmpose-l_8xb32-270e_coco-ubody-wholebody-384x288.py'
-checkpoint_file = './models/dwpose/dw-ll_ucoco_384.pth'
-model = init_model(config_file, checkpoint_file, device=device)
 
-# initialize the face detection model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 fa = FaceAlignment(LandmarksType._2D, flip_input=False,device=device)
+
+def initialize_models(checkpoints_path):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    base_dir = Path(__file__).resolve().parent
+    config_file = base_dir / "dwpose" / "rtmpose-l_8xb32-270e_coco-ubody-wholebody-384x288.py"
+    checkpoint_file = f'{checkpoints_path}/dwpose/dw-ll_ucoco_384.pth'
+    return init_model(config_file, checkpoint_file, device=device)
 
 # maker if the bbox is not sufficient 
 coord_placeholder = (0.0,0.0,0.0,0.0)
@@ -81,7 +84,7 @@ def get_bbox_range(img_list,upperbondrange =0):
     return text_range
     
 
-def get_landmark_and_bbox(img_list,upperbondrange =0):
+def get_landmark_and_bbox(img_list,checkpoints_path, upperbondrange =0):
     frames = read_imgs(img_list)
     batch_size_fa = 1
     batches = [frames[i:i + batch_size_fa] for i in range(0, len(frames), batch_size_fa)]
@@ -93,6 +96,7 @@ def get_landmark_and_bbox(img_list,upperbondrange =0):
         print('get key_landmark and face bounding boxes with the default value')
     average_range_minus = []
     average_range_plus = []
+    model = initialize_models(checkpoints_path)
     for fb in tqdm(batches):
         results = inference_topdown(model, np.asarray(fb)[0])
         results = merge_data_samples(results)

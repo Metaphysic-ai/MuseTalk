@@ -32,7 +32,7 @@ class Inference:
         self,
         unet_model_path: str,
         unet_model_config: str,
-        whisper_dir: str,
+        checkpoints_dirs: str,
         vae_type: str ="sd-vae",
         use_float16 = False,
         left_cheek_width=90,
@@ -40,9 +40,11 @@ class Inference:
     ):
 
         self._device = torch.device(f"cuda:0" if torch.cuda.is_available() else "cpu")
+        self._checkpoints_dirs = checkpoints_dirs
 
         with torch.no_grad():
             self._vae, self._unet, self._pe = load_all_model(
+                checkpoints_dirs=checkpoints_dirs,
                 unet_model_path=unet_model_path,
                 vae_type=vae_type,
                 unet_config=unet_model_config,
@@ -59,16 +61,22 @@ class Inference:
             self._vae.vae = self._vae.vae.to(self._device)
             self._unet.model = self._unet.model.to(self._device)
 
-
-            self._audio_processor = AudioProcessor(feature_extractor_path=whisper_dir)
+            whispers_dir = f"{checkpoints_dirs}/whisper"
+            self._audio_processor = AudioProcessor(feature_extractor_path=whispers_dir)
             self._weight_dtype = self._unet.model.dtype
-            self._whisper = WhisperModel.from_pretrained(whisper_dir)
+            self._whisper = WhisperModel.from_pretrained(whispers_dir)
             self._whisper = self._whisper.to(device=self._device, dtype=self._weight_dtype).eval()
             self._whisper.requires_grad_(False)
+            
+            
+            resnet_path=f'{checkpoints_dirs}/face-parse-bisent/resnet18-5c106cde.pth'
+            model_pth=f'{checkpoints_dirs}/face-parse-bisent/79999_iter.pth'
 
             self._fp = FaceParsing(
                 left_cheek_width=left_cheek_width,
-                right_cheek_width=right_cheek_width
+                right_cheek_width=right_cheek_width,
+                resnet_path=resnet_path,
+                model_pth=model_pth,
             )
 
     def run(self, images, audio_path, fps, audio_padding_length_left=2, audio_padding_length_right=2, extra_margin=10, batch_size=8, parsing_mode="jaw"):
@@ -85,7 +93,7 @@ class Inference:
                 audio_padding_length_right=audio_padding_length_right,
             )
 
-            coord_list, frame_list = get_landmark_and_bbox(images, 0)
+            coord_list, frame_list = get_landmark_and_bbox(images, self._checkpoints_dirs, 0)
 
             input_latent_list = []
             for bbox, frame in zip(coord_list, frame_list):

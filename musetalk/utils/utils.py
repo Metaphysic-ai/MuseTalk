@@ -13,13 +13,14 @@ from musetalk.models.unet import UNet,PositionalEncoding
 
 
 def load_all_model(
+    checkpoints_dirs,
     unet_model_path=os.path.join("models", "musetalkV15", "unet.pth"),
     vae_type="sd-vae",
     unet_config=os.path.join("models", "musetalkV15", "musetalk.json"),
     device=None,
 ):
     vae = VAE(
-        model_path = os.path.join("models", vae_type),
+        model_path = os.path.join(checkpoints_dirs, vae_type),
     )
     print(f"load unet model from {unet_model_path}")
     unet = UNet(
