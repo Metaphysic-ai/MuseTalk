@@ -44,6 +44,7 @@ dependencies = [
     "shapely (>=2.1.2,<3.0.0)",
     "terminaltables (>=3.1.10,<4.0.0)",
     "face-alignment (>=1.4.1,<2.0.0)",
+    "onnx (>=1.16.0,<1.17.0)",
 ]
 
 [build-system]
