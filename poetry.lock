@@ -619,14 +619,24 @@ files = [
 
 [[package]]
 name = "chumpy"
-version = "0.70"
+version = "0.71"
 description = "chumpy"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 groups = ["main"]
-files = [
-    {file = "chumpy-0.70.tar.gz", hash = "sha256:a0275c2018784ca1302875567dc81761f5fd469fab9f3ac0f3e7c39e9180350a"},
-]
+files = []
+develop = false
+
+[package.dependencies]
+numpy = ">=1.8.1"
+scipy = ">=0.13.0"
+six = ">=1.11.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/mlouielu/chumpy.git"
+reference = "pep517"
+resolved_reference = "357a9544d88e88dac729ba3351a1d9395a38b220"
 
 [[package]]
 name = "click"
@@ -5970,4 +5980,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.12"
-content-hash = "a5d1500616a13495621dd3efac8c0920953420cd4a04f4cd6203063b51bd6e3d"
+content-hash = "b9382b5422a1331c3e214e03c7d8c9b69c089fdbd1e896b5af01de61cbae8e08"
